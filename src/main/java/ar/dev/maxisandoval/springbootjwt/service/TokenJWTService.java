@@ -1,6 +1,7 @@
 package ar.dev.maxisandoval.springbootjwt.service;
 
 import ar.dev.maxisandoval.springbootjwt.models.Usuario;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
@@ -10,6 +11,7 @@ import javax.crypto.SecretKey;
 import java.util.Date;
 import java.util.Map;
 
+@Slf4j
 @Service
 public class TokenJWTService {
 
@@ -38,7 +40,8 @@ public class TokenJWTService {
     }
 
     private String buildToken(final Usuario usuario, final long expiration) {
-        return Jwts
+
+        String tokenRet = Jwts
                 .builder()
                 .claims(Map.of("name", usuario.getName()))
                 .subject(usuario.getEmail())
@@ -46,6 +49,10 @@ public class TokenJWTService {
                 .expiration(new Date(System.currentTimeMillis() + expiration))
                 .signWith(getSignInKey())
                 .compact();
+
+        log.info("***buildToken: ".concat(tokenRet).concat(" ***"));
+
+        return tokenRet;
     }
 
     public boolean isTokenValid(String token, Usuario usuario) {
