@@ -16,7 +16,7 @@ public class UsuarioService {
     public List<UsuarioResponse> fetchAllUsersAsResponses() {
         return usuarioRepository.findAll()
                 .stream()
-                .map(user -> new UsuarioResponse(user.getName(), user.getEmail()))
+                .map(usuario -> new UsuarioResponse(usuario.getName(), usuario.getEmail()))
                 .toList();
     }
 }
