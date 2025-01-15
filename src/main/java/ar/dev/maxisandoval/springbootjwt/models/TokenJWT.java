@@ -28,7 +28,7 @@ public final class TokenJWT {
     private Boolean isExpired;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "usuario_id")
     private Usuario usuario;
 
     public enum TokenType {
