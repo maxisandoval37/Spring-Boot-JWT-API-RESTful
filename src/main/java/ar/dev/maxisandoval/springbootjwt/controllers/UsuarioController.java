@@ -8,6 +8,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
+@RequestMapping("/api/auth")
 public class UsuarioController {
 
     private final UsuarioService usuarioService;

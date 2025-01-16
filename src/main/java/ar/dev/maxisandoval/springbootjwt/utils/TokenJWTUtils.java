@@ -1,17 +1,21 @@
 package ar.dev.maxisandoval.springbootjwt.utils;
 
 import ar.dev.maxisandoval.springbootjwt.models.Usuario;
+import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
 import javax.crypto.SecretKey;
 import java.util.*;
 
 @Slf4j
-@UtilityClass
+@Component
 public class TokenJWTUtils {
 
     @Value("${security.jwt.secret-key}")

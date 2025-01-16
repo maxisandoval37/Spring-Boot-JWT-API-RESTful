@@ -15,6 +15,7 @@ import java.util.List;
 public class AuthService {
     private final UsuarioService usuarioService;
     private final TokenJWTService tokenJWTService;
+    private final TokenJWTUtils tokenJWTUtils;
     private final AuthenticationManager authenticationManager;
     private final PasswordEncoder passwordEncoder;
 
@@ -26,8 +27,8 @@ public class AuthService {
                 .build();
 
         final Usuario savedUser = usuarioService.saveUser(usuario);
-        final String jwtToken = TokenJWTUtils.generateToken(savedUser);
-        final String refreshToken = TokenJWTUtils.generateRefreshToken(savedUser);
+        final String jwtToken = tokenJWTUtils.generateToken(savedUser);
+        final String refreshToken = tokenJWTUtils.generateRefreshToken(savedUser);
 
         saveUserToken(savedUser, jwtToken);
         return new TokenJWTResponse(jwtToken, refreshToken);
@@ -41,8 +42,8 @@ public class AuthService {
                 )
         );
         final Usuario usuario = usuarioService.findUserByEmail(request.email());
-        final String accessToken = TokenJWTUtils.generateToken(usuario);
-        final String refreshToken = TokenJWTUtils.generateRefreshToken(usuario);
+        final String accessToken = tokenJWTUtils.generateToken(usuario);
+        final String refreshToken = tokenJWTUtils.generateRefreshToken(usuario);
 
         revokeAllUserTokens(usuario);
         saveUserToken(usuario, accessToken);
@@ -78,18 +79,18 @@ public class AuthService {
         }
 
         String refreshToken = authentication.substring(7);
-        String userEmail = TokenJWTUtils.extractUsername(refreshToken);
+        String userEmail = tokenJWTUtils.extractUsername(refreshToken);
         if (userEmail == null) {
             return null;
         }
 
         Usuario usuario = usuarioService.findUserByEmail(userEmail);
-        boolean isTokenValid = TokenJWTUtils.isTokenValid(refreshToken, usuario);
+        boolean isTokenValid = tokenJWTUtils.isTokenValid(refreshToken, usuario);
         if (!isTokenValid) {
             return null;
         }
 
-        String accessToken = TokenJWTUtils.generateRefreshToken(usuario);
+        String accessToken = tokenJWTUtils.generateRefreshToken(usuario);
         revokeAllUserTokens(usuario);
         saveUserToken(usuario, accessToken);
 

@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
+@RequestMapping("/auth")
 public class AuthController {
 
     private final AuthService authService;
@@ -28,6 +29,5 @@ public class AuthController {
     public TokenJWTResponse refreshToken(@RequestHeader(HttpHeaders.AUTHORIZATION) final String authentication) {
         return authService.refreshToken(authentication);
     }
-
 
 }
