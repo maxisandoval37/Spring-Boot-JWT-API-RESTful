@@ -1,0 +1,98 @@
+package ar.dev.maxisandoval.springbootjwt.service;
+
+import ar.dev.maxisandoval.springbootjwt.models.*;
+import ar.dev.maxisandoval.springbootjwt.records.*;
+import ar.dev.maxisandoval.springbootjwt.utils.TokenJWTUtils;
+import jakarta.validation.constraints.NotNull;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.*;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import java.util.List;
+
+@Service
+@RequiredArgsConstructor
+public class AuthService {
+    private final UsuarioService usuarioService;
+    private final TokenJWTService tokenJWTService;
+    private final AuthenticationManager authenticationManager;
+    private final PasswordEncoder passwordEncoder;
+
+    public TokenJWTResponse register(final RegisterRequest request) {
+        final Usuario usuario = Usuario.builder()
+                .name(request.name())
+                .email(request.email())
+                .password(passwordEncoder.encode(request.password()))
+                .build();
+
+        final Usuario savedUser = usuarioService.saveUser(usuario);
+        final String jwtToken = TokenJWTUtils.generateToken(savedUser);
+        final String refreshToken = TokenJWTUtils.generateRefreshToken(savedUser);
+
+        saveUserToken(savedUser, jwtToken);
+        return new TokenJWTResponse(jwtToken, refreshToken);
+    }
+
+    public TokenJWTResponse authenticate(final AuthRequest request) {
+        authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        request.email(),
+                        request.password()
+                )
+        );
+        final Usuario usuario = usuarioService.findUserByEmail(request.email());
+        final String accessToken = TokenJWTUtils.generateToken(usuario);
+        final String refreshToken = TokenJWTUtils.generateRefreshToken(usuario);
+
+        revokeAllUserTokens(usuario);
+        saveUserToken(usuario, accessToken);
+        return new TokenJWTResponse(accessToken, refreshToken);
+    }
+
+    private void saveUserToken(Usuario usuario, String jwtToken) {
+        final TokenJWT token = TokenJWT.builder()
+                .usuario(usuario)
+                .token(jwtToken)
+                .tokenType(TokenJWT.TokenType.BEARER)
+                .isExpired(false)
+                .isRevoked(false)
+                .build();
+        tokenJWTService.saveTokenJWT(token);
+    }
+
+    private void revokeAllUserTokens(final Usuario usuario) {
+        final List<TokenJWT> validUserTokens = tokenJWTService.findAllValidTokenByUser(usuario.getId());
+        if (!validUserTokens.isEmpty()) {
+            validUserTokens.forEach(token -> {
+                token.setIsExpired(true);
+                token.setIsRevoked(true);
+            });
+            tokenJWTService.saveAllTokenJWT(validUserTokens);
+        }
+    }
+
+    public TokenJWTResponse refreshToken(@NotNull final String authentication) {
+
+        if (!authentication.startsWith("Bearer ")) {
+            throw new IllegalArgumentException("Invalid auth header");
+        }
+
+        String refreshToken = authentication.substring(7);
+        String userEmail = TokenJWTUtils.extractUsername(refreshToken);
+        if (userEmail == null) {
+            return null;
+        }
+
+        Usuario usuario = usuarioService.findUserByEmail(userEmail);
+        boolean isTokenValid = TokenJWTUtils.isTokenValid(refreshToken, usuario);
+        if (!isTokenValid) {
+            return null;
+        }
+
+        String accessToken = TokenJWTUtils.generateRefreshToken(usuario);
+        revokeAllUserTokens(usuario);
+        saveUserToken(usuario, accessToken);
+
+        return new TokenJWTResponse(accessToken, refreshToken);
+    }
+}
