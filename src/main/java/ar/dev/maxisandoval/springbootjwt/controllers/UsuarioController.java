@@ -14,7 +14,7 @@ public class UsuarioController {
     private final UsuarioService usuarioService;
 
     @GetMapping("/usuarios")
-    public List<UsuarioResponse> changePassword() {
+    public List<UsuarioResponse> listUsers() {
         return usuarioService.fetchAllUsersAsResponses();
     }
 }
