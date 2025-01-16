@@ -73,24 +73,19 @@ public class AuthService {
     }
 
     public TokenJWTResponse refreshToken(@NotNull final String authentication) {
-
         if (!authentication.startsWith("Bearer ")) {
             throw new IllegalArgumentException("Invalid auth header");
         }
 
         String refreshToken = authentication.substring(7);
         String userEmail = tokenJWTUtils.extractUsername(refreshToken);
-        if (userEmail == null) {
+        if (userEmail == null || !tokenJWTUtils.isTokenValid(refreshToken, usuarioService.findUserByEmail(userEmail))) {
             return null;
         }
 
         Usuario usuario = usuarioService.findUserByEmail(userEmail);
-        boolean isTokenValid = tokenJWTUtils.isTokenValid(refreshToken, usuario);
-        if (!isTokenValid) {
-            return null;
-        }
-
         String accessToken = tokenJWTUtils.generateRefreshToken(usuario);
+
         revokeAllUserTokens(usuario);
         saveUserToken(usuario, accessToken);
 

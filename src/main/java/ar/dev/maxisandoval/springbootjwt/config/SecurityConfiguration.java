@@ -27,7 +27,6 @@ public class SecurityConfiguration {
     private final AuthenticationProvider authenticationProvider;
     private final TokenJWTService tokenJWTService;
 
-
     @Bean
     public SecurityFilterChain securityFilterChain(final HttpSecurity http) throws Exception {
         http
@@ -45,8 +44,7 @@ public class SecurityConfiguration {
                         logout.logoutUrl("/auth/logout")
                                 .addLogoutHandler(this::logout)
                                 .logoutSuccessHandler((request, response, authentication) -> SecurityContextHolder.clearContext())
-                )
-        ;
+                );
 
         return http.build();
     }
