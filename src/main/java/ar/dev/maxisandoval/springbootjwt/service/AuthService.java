@@ -61,7 +61,7 @@ public class AuthService {
         tokenJWTService.saveTokenJWT(token);
     }
 
-    private void revokeAllUserTokens(final Usuario usuario) {
+    private void revokeAllUserTokens(final Usuario usuario) {// En nuestra lógica, solo permite un usuario logeado a la vez
         final List<TokenJWT> validUserTokens = tokenJWTService.findAllValidTokenByUser(usuario.getId());
         if (!validUserTokens.isEmpty()) {
             validUserTokens.forEach(token -> {
